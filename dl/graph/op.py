@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from variable import Variable
+import dl.graph.variable as variable
 import numpy as np
 
 
@@ -10,79 +10,83 @@ class Operator(object):
     """
 
     def __call__(self, *var):
-        new_variable = self.compute(*var)
-        new_variable.operator = self
-        return new_variable
+        return self.compute(*var)
 
     @abstractmethod
     def compute(self, *var):
-        pass
+        raise NotImplementedError
 
     @abstractmethod
-    def gradient(self, variable, output_grad):
+    def gradient(self, input_variables, prev_grad):
         """
         Call gradient() to compute the derivative of input variables to the source
-        :param variable: the variable where the operator outputs
-        :param output_grad: the gradient of this variable to the source
+        :param input_variables: the variable where the operator outputs
+        :param prev_grad: the gradient of this variable to the source
         :return: the derivative of input variables to the source
         """
-        pass
+        raise NotImplementedError
 
 
 class Add(Operator):
 
     def compute(self, *var):
-        return Variable(var[0].val + var[1].val, var, self,
-                        "{} + {}".format(var[0].name, var[1].name))
+        return variable.Variable(var[0].item + var[1].item, var, operator=self)
 
-    def gradient(self, variable, output_grad):
-        return [output_grad, output_grad]
+    def gradient(self, input_variables, prev_grad):
+        return prev_grad, prev_grad
 
 
 class Mul(Operator):
 
     def compute(self, *var):
-        return Variable(np.matmul(var[0].val, var[1].val), var, self,
-                        "({}) * ({})".format(var[0].name, var[1].name))
+        return variable.Variable(var[0].item * var[1].item, var, operator=self)
 
-    def gradient(self, variable, output_grad):
-        return [variable.input[1]*output_grad, variable[0]*output_grad]
+    def gradient(self, input_variables, prev_grad):
+        return [input_variables[1].item * prev_grad, input_variables[0].item * prev_grad]
 
 
-class Log(Operator):
-    # log e
+class MatMul(Operator):
+
     def compute(self, *var):
-        return Variable(np.log(var[0].val), var, self,
-                        "log({})".format(var[0].name, var[1].name))
+        return variable.Variable(np.matmul(var[0].item, var[1].item), var, operator=self)
 
-    def gradient(self, variable, output_grad):
-        return [(1/variable[0])*output_grad]
+    def gradient(self, input_variables, prev_grad):
+        return
+
+
+#
+# class Log(Operator):
+#     # log e
+#     def compute(self, *var):
+#         return Variable(np.log(var[0].val), var, self,
+#                         "log({})".format(var[0].name, var[1].name))
+#
+#     def gradient(self, variable, prev_grad):
+#         return [(1/variable[0])*prev_grad]
 
 
 class ReLU(Operator):
     def compute(self, *var):
-        return Variable(np.where(var[0].val > 0, var[0].val, 0),
-                        var,
-                        self,
-                        "relu({})".format(var[0].val))
+        return variable.Variable(np.where(var[0].item > 0, var[0].item, 0),
+                                 var, operator=self)
 
-    def gradient(self, variable, output_grad):
-        return np.where(variable.input[0].val > 0, 1, 0) * output_grad
+    def gradient(self, input_variables, prev_grad):
+        return np.where(input_variables > 0, 1, 0) * prev_grad
 
-
-class Divide(Operator):
-
-    def compute(self, *var):
-        return var[0] / var[1]
-
-    def gradient(self, variable, output_grad):
-        return 
+#
+# class Sub(Operator):
+#
+#     def compute(self, *var):
+#         pass
+#
+#     def gradient(self, variable, prev_grad):
+#         pass
 
 
-class PlaceHolder(Operator):
-
-    def compute(self, *var):
-        pass
-
-    def gradient(self, variable, output_grad):
-        pass
+# class PlaceHolder(Operator):
+#
+#     def compute(self, *var):
+#         pass
+#
+#     def gradient(self, variable, prev_grad):
+#         pass
