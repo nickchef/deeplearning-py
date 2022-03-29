@@ -51,7 +51,11 @@ class MatMul(Operator):
         return variable.Variable(np.matmul(var[0].item, var[1].item), var, operator=self)
 
     def gradient(self, input_variables, prev_grad):
-        return
+        # print(prev_grad.shape)
+        # print(input_variables[1].item.shape)
+        # print(input_variables[1].item.T.shape)
+        return np.matmul(prev_grad, input_variables[1].item.T), \
+            np.matmul(input_variables[0].item.T, prev_grad)
 
 
 #
@@ -71,16 +75,26 @@ class ReLU(Operator):
                                  var, operator=self)
 
     def gradient(self, input_variables, prev_grad):
-        return np.where(input_variables > 0, 1, 0) * prev_grad
+        grad = np.where(input_variables[0].item > 0, 1, 0) * prev_grad
+        return [grad]
 
-#
-# class Sub(Operator):
-#
-#     def compute(self, *var):
-#         pass
-#
-#     def gradient(self, variable, prev_grad):
-#         pass
+
+class SoftMax(Operator):
+
+    def compute(self, *var):
+        pass
+
+    def gradient(self, input_variables, prev_grad):
+        pass
+
+
+class Sub(Operator):
+
+    def compute(self, *var):
+        return variable.Variable(var[0].item - var[1].item, var, operator=self)
+
+    def gradient(self, input_variables, prev_grad):
+        return prev_grad, -prev_grad
 
 
 # class PlaceHolder(Operator):
