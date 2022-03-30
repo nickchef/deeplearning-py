@@ -1,6 +1,5 @@
-import numpy as np
 from dl.graph.variable import Variable
-from dl.graph.op import SoftMax, Sub
+import dl.graph.op as OP
 
 
 class LossFunction:
@@ -12,8 +11,10 @@ class LossFunction:
         raise NotImplementedError
 
 
-class SoftMaxLoss(LossFunction):
+class CrossEntropyLoss(LossFunction):
+
+    def __init__(self):
+        self.op = OP.CrossEntropy()
 
     def compute(self, y, yhat) -> Variable:
-        pred = SoftMax()(y)
-        return y - yhat
+        return self.op(y, yhat)
