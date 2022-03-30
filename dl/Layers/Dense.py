@@ -11,8 +11,8 @@ class DenseLayer(Module):
         self.weight = variable.Variable(
             np.array([[1 for _ in range(input_dims * output_dims)]]).reshape(output_dims, input_dims)
         )  # shape(output_dim, input_dim)
-        self.bias = variable.Variable(np.array([[0 for _ in range(output_dims)]]))  # shape(1, output_dim)
+        self.bias = variable.Variable(np.array([[1 for _ in range(output_dims)]]).T)  # shape(1, output_dim)
         self.variables = [self.weight, self.bias]
 
-    def forward(self, x) -> variable.Variable:
+    def forward(self, x):
         return (self.weight @ x) + self.bias

@@ -1,16 +1,16 @@
-from typing import Any
 import dl.graph.op as op
 import numpy as np
 
 
 class Variable(object):
 
-    def __init__(self, val: Any, input_vars=None, operator=None):
-        self.item = val  # value of this variable
+    def __init__(self, val: np.ndarray, input_vars=None, operator=None, no_grad=False):
+        self.item = val.astype(np.float32)  # value of this variable
         self.input_vars = input_vars  # the variables result in this variable
         self.operator = operator  # the operator to produce this variable
-        self.grad = None  # this variable's gradient in the backprop
         self.shape = np.shape(self.item)
+        self.grad = None  # this variable's gradient in the backprop
+        self.no_grad = no_grad
 
     def __matmul__(self, other):
         return op.MatMul()(self, other)
@@ -21,6 +21,7 @@ class Variable(object):
     def __add__(self, other):
         if isinstance(other, Variable):
             return op.Add()(self, other)
+        raise TypeError
 
     def __sub__(self, other):
         return op.Sub().compute(self, other)
@@ -31,9 +32,10 @@ class Variable(object):
     def backward(self, prev_grad=None):
         if prev_grad is None:
             prev_grad = np.ones(self.shape)
-        if self.grad is None:
+        if self.grad is None and not self.no_grad:
             self.grad = np.zeros(self.shape)
-        self.grad += prev_grad
+        if not self.no_grad:
+            self.grad += prev_grad
         if self.operator is not None:
             for var, grad in zip(self.input_vars, self.operator.gradient(self.input_vars, prev_grad)):
                 var.backward(grad)

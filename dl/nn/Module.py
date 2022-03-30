@@ -6,8 +6,8 @@ class Module:
         self.variables = None
         self.children = None
 
-    def __call__(self, *args):
-        self.forward(*args)
+    def __call__(self, x):
+        return self.forward(x)
 
     def _get_sub_modules(self):
         self.children = []
@@ -36,7 +36,7 @@ class Module:
         for i in self.children:
             i.eval()
 
-    def forward(self, *args):
+    def forward(self, x):
         raise NotImplementedError
 
     def apply(self, func):

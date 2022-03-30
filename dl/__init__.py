@@ -1,5 +1,7 @@
 __all__ = []
 
+from .optimizer.Optim import *
+from .optimizer.SGD import *
 from .nn.Module import *
 from .graph.op import *
 from .graph.variable import *
