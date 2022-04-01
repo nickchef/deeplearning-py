@@ -80,7 +80,7 @@ class CrossEntropy(Operator):
     # yhat: var[1]
     def compute(self, *var):
         return variable.Variable(
-            -np.sum(var[0].item * np.log(var[1].item) / var[0].item.shape[0], axis=0),
+            -np.sum(var[0].item * np.log(var[1].item) / var[0].item.shape[1], axis=0),
             input_vars=var,
             operator=self,
             no_grad=True

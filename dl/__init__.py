@@ -10,3 +10,5 @@ from .Layers.BatchNorm import *
 from .Layers.Dense import *
 from .Layers.Dropout import *
 from .Layers.ReLU import *
+from .dataset.DataSet import *
+from .utils.OneHotEncode import *
