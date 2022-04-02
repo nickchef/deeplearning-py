@@ -1,14 +1,11 @@
 __all__ = []
 
-from .optimizer.Optim import *
-from .optimizer.SGD import *
-from .nn.Module import *
-from .graph.op import *
-from .graph.variable import *
-from .metrics.lossfunc import *
-from .Layers.BatchNorm import *
-from .Layers.Dense import *
-from .Layers.Dropout import *
-from .Layers.ReLU import *
-from .dataset.DataSet import *
-from .utils.OneHotEncode import *
+import dl.nn
+import dl.Layers
+import dl.dataset
+import dl.graph
+import dl.metrics
+import dl.optimizer
+import dl.utils
+
+from dl.graph.op import *

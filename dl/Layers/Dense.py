@@ -1,18 +1,30 @@
-import numpy as np
-
 from dl.nn.Module import Module
 from dl.graph import variable
+from dl.graph.op import do_nothing, Dropout
+from dl.nn.init import xavier_uniform_init
 
 
 class DenseLayer(Module):
-
-    def __init__(self, input_dims, output_dims) -> None:
+    # initializer = xavier_uniform_init, activation = None, dropout = None
+    def __init__(self, input_dims, output_dims, **kwargs) -> None:
         super().__init__()
-        self.weight = variable.Variable(
-            np.array([[0.1 for _ in range(input_dims * output_dims)]]).reshape(output_dims, input_dims)
-        )  # shape(output_dim, input_dim)
-        self.bias = variable.Variable(np.array([[1 for _ in range(output_dims)]]).T)  # shape(1, output_dim)
+        initializer = kwargs["initializer"] if "initializer" in kwargs.keys() else xavier_uniform_init
+        i_weight, i_bias = initializer(input_dims, output_dims)
+        self.weight = variable.Variable(i_weight)
+        self.bias = variable.Variable(i_bias)  # shape(1, output_dim)
         self.variables = [self.weight, self.bias]
 
+        self.activation = kwargs["activation"] if "activation" in kwargs.keys() else do_nothing
+        self.dropout = Dropout(kwargs["dropout"]) if "dropout" in kwargs.keys() else do_nothing
+
     def forward(self, x):
-        return (self.weight @ x) + self.bias
+        return self.dropout(self.activation((self.weight @ x) + self.bias))
+
+    def eval(self):
+        if isinstance(self.dropout, Dropout):
+            self.dropout.eval = True
+
+    def train(self):
+        if isinstance(self.dropout, Dropout):
+            self.dropout.eval = False
+

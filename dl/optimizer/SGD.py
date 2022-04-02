@@ -1,5 +1,4 @@
-from dl import Optim
-import numpy as np
+from dl.optimizer import Optim
 
 
 class SGDOptimizer(Optim):
@@ -10,4 +9,4 @@ class SGDOptimizer(Optim):
 
     def step(self):
         for variable in self.variables:
-            variable.item -= (variable.grad * self.lr).astype(np.float32)
+            variable.item -= variable.grad * self.lr

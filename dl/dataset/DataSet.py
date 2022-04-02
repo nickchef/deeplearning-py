@@ -50,3 +50,6 @@ class DataSet(object):
             return self.x[self._idx - 1], self.y[self._idx - 1]
         else:
             raise StopIteration
+
+    def __len__(self):
+        return len(self.x)

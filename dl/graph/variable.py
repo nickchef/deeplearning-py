@@ -5,7 +5,7 @@ import numpy as np
 class Variable(object):
 
     def __init__(self, val: np.ndarray, input_vars=None, operator=None, no_grad=False):
-        self.item = val.astype(np.float32)  # value of this variable
+        self.item = val.astype(np.float64)  # value of this variable
         self.input_vars = input_vars  # the variables result in this variable
         self.operator = operator  # the operator to produce this variable
         self.shape = np.shape(val)

@@ -1,4 +1,5 @@
 import dl.graph.variable as variable
+from dl.utils.fitShape import fit_shape
 import numpy as np
 
 
@@ -31,7 +32,8 @@ class Add(Operator):
                                  input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
-        return prev_grad, prev_grad
+        return fit_shape(prev_grad, input_variables[0]),\
+               fit_shape(prev_grad, input_variables[1])
 
 
 class Mul(Operator):
@@ -72,7 +74,7 @@ class SoftMax(Operator):
                                  input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
-        return prev_grad  # No grad needed for output
+        return [prev_grad]  # No grad needed for output
 
 
 class CrossEntropy(Operator):
@@ -80,14 +82,14 @@ class CrossEntropy(Operator):
     # yhat: var[1]
     def compute(self, *var):
         return variable.Variable(
-            -np.sum(var[0].item * np.log(var[1].item) / var[0].item.shape[1], axis=0),
+            np.atleast_2d(-np.sum(var[0].item * np.log(var[1].item), axis=0) / var[0].item.shape[0]),
             input_vars=var,
             operator=self,
             no_grad=True
         )
 
     def gradient(self, input_variables, prev_grad):
-        return [0, input_variables[1].item - input_variables[0].item]
+        return 0, input_variables[1].item - input_variables[0].item
 
 
 class Sub(Operator):
@@ -122,7 +124,7 @@ class Dropout(Operator):
         return variable.Variable(var[0].item * self.mask, input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
-        return prev_grad * self.mask
+        return [prev_grad * self.mask]
 
 
 def relu(var):
@@ -131,3 +133,8 @@ def relu(var):
 
 def softmax(var):
     return SoftMax()(var)
+
+
+def do_nothing(var):
+    return var
+

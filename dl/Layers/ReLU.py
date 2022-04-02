@@ -1,4 +1,4 @@
-from dl import Module
+from dl.nn import Module
 import dl.graph.op as OP
 
 
