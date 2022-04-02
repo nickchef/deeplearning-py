@@ -1,4 +1,5 @@
 import numpy as np
+from dl.graph.variable import Variable
 
 
 class DataSet(object):
@@ -25,16 +26,16 @@ class DataSet(object):
             available_size = len(x) - len(x) % batch_size
             for i in range(0, available_size, batch_size):
                 x_batch, y_batch = _make_batch(i, batch_size)
-                self.x.append(x_batch.T if T else x_batch)
-                self.y.append(y_batch)
+                self.x.append(Variable(x_batch.T if T else x_batch, no_grad=True))
+                self.y.append(Variable(y_batch.T if T else y_batch, no_grad=True))
 
             if keep_remainder and available_size != len(x):
                 x_batch, y_batch = _make_batch(available_size, len(x) - available_size)
-                self.x.append(x_batch.T if T else x_batch)
-                self.y.append(y_batch)
+                self.x.append(Variable(x_batch.T if T else x_batch, no_grad=True))
+                self.y.append(Variable(y_batch.T if T else y_batch, no_grad=True))
         else:
-            self.x = [np.array(i).T if T else np.array(i) for i in x]
-            self.y = [np.array(i) for i in y]
+            self.x = [Variable(np.array(i).T if T else np.array(i), no_grad=True) for i in x]
+            self.y = [Variable(np.array(i).T if T else np.array(i), no_grad=True) for i in y]
 
     def __iter__(self):
         self._idx = 0

@@ -1,6 +1,6 @@
 import numpy as np
 
-from dl import Module
+from dl.nn.Module import Module
 from dl.graph import variable
 
 

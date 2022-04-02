@@ -8,7 +8,7 @@ class Variable(object):
         self.item = val.astype(np.float32)  # value of this variable
         self.input_vars = input_vars  # the variables result in this variable
         self.operator = operator  # the operator to produce this variable
-        self.shape = np.shape(self.item)
+        self.shape = np.shape(val)
         self.grad = None  # this variable's gradient in the backprop
         self.no_grad = no_grad
 

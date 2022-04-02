@@ -127,3 +127,7 @@ class Dropout(Operator):
 
 def relu(var):
     return ReLU()(var)
+
+
+def softmax(var):
+    return SoftMax()(var)
