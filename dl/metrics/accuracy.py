@@ -1,9 +1,11 @@
 import numpy as np
+from dl.graph.variable import Variable
 
 
-def accuracy(y, yhat):
-    yhat_max = np.max(yhat, axis=0)
-    yres = np.where(yhat == yhat_max, 1, 0)
+def accuracy(y: Variable, yhat: Variable) -> float:
+    yhat_max = np.max(yhat.item, axis=0)
+    yres = np.where(yhat.item == yhat_max, 1, 0)
     right_cases = 0
     for i in range(y.shape[1]):
-        right_cases += 1 if y[:, i].all() == yres[:i].all() else 0
+        right_cases += 1 if np.all(y.item[:, i] == yres[:, i]) else 0
+    return right_cases / y.shape[1]

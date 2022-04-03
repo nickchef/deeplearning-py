@@ -1,4 +1,4 @@
-import dl.graph.variable as variable
+from dl.graph.variable import Variable
 from dl.utils.fitShape import fit_shape
 import numpy as np
 
@@ -28,29 +28,30 @@ class Operator(object):
 class Add(Operator):
 
     def compute(self, *var):
-        return variable.Variable(var[0].item + var[1].item,
-                                 input_vars=var, operator=self, no_grad=True)
+        return Variable(var[0].item + var[1].item,
+                        input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
-        return fit_shape(prev_grad, input_variables[0]),\
+        return fit_shape(prev_grad, input_variables[0]), \
                fit_shape(prev_grad, input_variables[1])
 
 
 class Mul(Operator):
 
     def compute(self, *var):
-        return variable.Variable(var[0].item * var[1].item,
-                                 input_vars=var, operator=self, no_grad=True)
+        return Variable(var[0].item * var[1].item,
+                        input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
-        return [input_variables[1].item * prev_grad, input_variables[0].item * prev_grad]
+        return fit_shape(input_variables[1].item * prev_grad, input_variables[0].item), \
+               fit_shape(input_variables[0].item * prev_grad, input_variables[1].item)
 
 
 class MatMul(Operator):
     # Input features should be transposed
     def compute(self, *var):
-        return variable.Variable(np.matmul(var[0].item, var[1].item),
-                                 input_vars=var, operator=self, no_grad=True)
+        return Variable(np.matmul(var[0].item, var[1].item),
+                        input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
         return np.matmul(prev_grad, input_variables[1].item.T), \
@@ -59,8 +60,8 @@ class MatMul(Operator):
 
 class ReLU(Operator):
     def compute(self, *var):
-        return variable.Variable(np.where(var[0].item > 0, var[0].item, 0),
-                                 input_vars=var, operator=self, no_grad=True)
+        return Variable(np.where(var[0].item > 0, var[0].item, 0),
+                        input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
         grad = np.where(input_variables[0].item > 0, 1, 0) * prev_grad
@@ -74,8 +75,8 @@ class SoftMax(Operator):
         # return variable.Variable(np.exp(var[0].item - max_value) / np.sum(np.exp(var[0].item - max_value), axis=0),
         #                          input_vars=var, operator=self, no_grad=True)
 
-        return variable.Variable(np.exp(var[0].item) / np.sum(np.exp(var[0].item), axis=0),
-                                 input_vars=var, operator=self, no_grad=True)
+        return Variable(np.exp(var[0].item) / np.sum(np.exp(var[0].item), axis=0),
+                        input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
         return [prev_grad]  # No grad needed for output
@@ -85,7 +86,7 @@ class CrossEntropy(Operator):
     # y: var[0]
     # yhat: var[1]
     def compute(self, *var):
-        return variable.Variable(
+        return Variable(
             np.atleast_2d(-np.sum(var[0].item * np.log(var[1].item), axis=0) / var[0].item.shape[0]),
             input_vars=var,
             operator=self,
@@ -99,8 +100,8 @@ class CrossEntropy(Operator):
 class Sub(Operator):
 
     def compute(self, *var):
-        return variable.Variable(var[0].item - var[1].item,
-                                 input_vars=var, operator=self, no_grad=True)
+        return Variable(var[0].item - var[1].item,
+                        input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
         return prev_grad, -prev_grad
@@ -125,10 +126,22 @@ class Dropout(Operator):
 
     def compute(self, *var):
         self.maskGen(var[0].shape)
-        return variable.Variable(var[0].item * self.mask, input_vars=var, operator=self, no_grad=True)
+        return Variable(var[0].item * self.mask, input_vars=var, operator=self, no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
         return [prev_grad * self.mask]
+
+
+class BatchNorm(Operator):
+
+    def compute(self, *var):  # val, mean, var, eps
+        return Variable((var[0].item - var[1])/np.sqrt(var[2] + var[3]),
+                        input_vars=[var[0], Variable(np.sqrt(var[2] + var[3]), no_grad=True)],
+                        operator=self,
+                        no_grad=True)
+
+    def gradient(self, input_variables, prev_grad):
+        return [prev_grad / input_variables[1].item]
 
 
 def relu(var):
@@ -139,6 +152,9 @@ def softmax(var):
     return SoftMax()(var)
 
 
+def batchNorm(x, mean, var, eps):
+    return BatchNorm()(x, mean, var, eps)
+
+
 def do_nothing(var):
     return var
-

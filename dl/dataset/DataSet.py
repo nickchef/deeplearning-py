@@ -4,7 +4,7 @@ from dl.graph.variable import Variable
 
 class DataSet(object):
 
-    def __init__(self, x, y, batch_size=1, shuffle=False, keep_remainder=True, T=True):
+    def __init__(self, x, y, batch_size=1, shuffle=False, keep_remainder=False, T=True):
         self.x = []
         self.y = []
         self._idx = 0
