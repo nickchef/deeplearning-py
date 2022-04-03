@@ -9,3 +9,6 @@ import dl.optimizer
 import dl.utils
 
 from dl.graph.op import *
+
+import numpy
+numpy.seterr(all='warn')

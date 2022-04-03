@@ -5,7 +5,6 @@ from dl.nn.init import xavier_uniform_init
 
 
 class DenseLayer(Module):
-    # initializer = xavier_uniform_init, activation = None, dropout = None
     def __init__(self, input_dims, output_dims, **kwargs) -> None:
         super().__init__()
         initializer = kwargs["initializer"] if "initializer" in kwargs.keys() else xavier_uniform_init

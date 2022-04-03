@@ -70,6 +70,10 @@ class ReLU(Operator):
 class SoftMax(Operator):
     # For mini-batch, the output layout will be same with the input
     def compute(self, *var):
+        # max_value = np.max(var[0].item, axis=0)
+        # return variable.Variable(np.exp(var[0].item - max_value) / np.sum(np.exp(var[0].item - max_value), axis=0),
+        #                          input_vars=var, operator=self, no_grad=True)
+
         return variable.Variable(np.exp(var[0].item) / np.sum(np.exp(var[0].item), axis=0),
                                  input_vars=var, operator=self, no_grad=True)
 
