@@ -1,7 +1,7 @@
 
 class Optim:
 
-    def __init__(self, variables, lr):
+    def __init__(self, variables: list, lr: float):
         self.variables = variables
         self.lr = lr
 

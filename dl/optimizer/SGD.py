@@ -1,4 +1,5 @@
 from dl.optimizer import Optim
+import numpy as np
 
 
 class SGDOptimizer(Optim):
@@ -9,8 +10,9 @@ class SGDOptimizer(Optim):
         self.momentum = momentum
         self.weight_decay = weight_decay
         if self.momentum is not None:
-            self.velocity = [0 for _ in self.variables]
-            self.step = self._init_velocity
+            self.velocity = [np.zeros_like(i.item) for i in self.variables]
+            # self.step = self._init_velocity
+            self._step_method = self._step_with_momentum
 
     def step(self):
         self._step_method()
@@ -19,13 +21,6 @@ class SGDOptimizer(Optim):
         for variable in self.variables:
             variable.grad += variable.item * self.weight_decay
             variable.item -= variable.grad * self.lr
-
-    def _init_velocity(self):
-        for i in range(len(self.variables)):
-            self.variables[i].grad += self.variables[i].item * self.weight_decay
-            self.velocity[i] = self.variables[i].grad.copy()
-            self.variables[i].item -= self.velocity[i] * self.lr
-        self._step_method = self._step_with_momentum
 
     def _step_with_momentum(self):
         for i in range(len(self.variables)):

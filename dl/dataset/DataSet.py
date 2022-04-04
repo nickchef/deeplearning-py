@@ -1,16 +1,38 @@
+from typing import Iterable
+
 import numpy as np
 from dl.graph.variable import Variable
 
 
 class DataSet(object):
 
-    def __init__(self, x, y, batch_size=1, shuffle=False, keep_remainder=False, T=True):
+    def __init__(self, x: Iterable, y: Iterable, batch_size=1, shuffle=False, keep_remainder=False, T=True) -> None:
+        """
+
+        A container of the data to achieve mini-batch and iterator.
+
+        Parameters
+        ----------
+        x: Iterable
+            Features of samples
+        y: Iterable
+            Labels of samples
+        batch_size: int
+            Mini-batch size
+        shuffle: bool
+            Set "True" to randomly reorder given data.
+        keep_remainder: bool
+            If the given samples size is not divisible by the batch size, set "True" to keep the remainder samples
+        T: bool
+            Set "True" to transpose the feature data.
+        """
         self.x = []
         self.y = []
         self._idx = 0
 
         if shuffle:
-            data_pair = np.shuffle(list(zip(x, y)))
+            data_pair = list(zip(x, y))
+            np.random.shuffle(data_pair)
             x = [i[0] for i in data_pair]
             y = [i[1] for i in data_pair]
 

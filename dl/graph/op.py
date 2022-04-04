@@ -1,39 +1,116 @@
+from typing import Iterable
+
 from dl.graph.variable import Variable
 from dl.utils.fitShape import fit_shape
 import numpy as np
+from scipy.special import erf
 
 
 class Operator(object):
     """
-    calling operators between variables will instantiate new operator object
-    to produce the new variable and indicate the compute process.
+    Basic class for all the operator objects.
     """
 
-    def __call__(self, *var):
+    def __call__(self, *var) -> Variable:
+        """
+
+        Perform the computation.
+
+        Parameters
+        ----------
+        var: Variable..
+            Variables to perform the computation.
+
+        Returns
+        -------
+        out: Variable
+            An Variable object of computation result.
+
+        """
         return self.compute(*var)
 
-    def compute(self, *var):
+    def compute(self, *var) -> Variable:
+        """
+
+        Perform the computation.
+
+        Parameters
+        ----------
+        var: Variable..
+            Operands of the computation.
+
+        Returns
+        -------
+        out: Variable
+            An Variable object of computation result.
+
+        """
         raise NotImplementedError
 
-    def gradient(self, input_variables, prev_grad):
+    def gradient(self, input_variables: list, prev_grad: np.ndarray) -> Iterable:
         """
-        Call gradient() to compute the derivative of input variables to the source
-        :param input_variables: the variable where the operator outputs
-        :param prev_grad: the gradient of this variable to the source
-        :return: the derivative of input variables to the source
+
+        Calculate the gradient through chain rules.
+
+        Parameters
+        ----------
+        input_variables: Variable..
+            Operands of this computation.
+        prev_grad
+            Gradient from previous computation.
+
+        Returns
+        -------
+        out: Iterable
+            The gradient of all operands in this computation.
         """
         raise NotImplementedError
 
 
 class Add(Operator):
+    """
+    Operator object of add.
+    """
 
-    def compute(self, *var):
+    def compute(self, *var) -> Variable:
+        """
+
+        Perform the add computation.
+
+        Parameters
+        ----------
+        var: Variable..
+            Variables to be added.
+
+        Returns
+        -------
+        out: Variable
+            An result Variable object.
+
+        """
         return Variable(var[0].item + var[1].item,
                         input_vars=var, operator=self, no_grad=True)
 
-    def gradient(self, input_variables, prev_grad):
-        return fit_shape(prev_grad, input_variables[0]), \
-               fit_shape(prev_grad, input_variables[1])
+    def gradient(self, input_variables: list, prev_grad: np.ndarray) -> Iterable:
+        """
+
+        Calculate the gradient through chain rules.
+        For add operation, the gradient should be 1 for each operand.
+
+        z = x + y , w = f(z), then
+
+        dx/dw = dz/dw
+
+        Parameters
+        ----------
+        input_variables
+        prev_grad
+
+        Returns
+        -------
+
+        """
+        return fit_shape(prev_grad, input_variables[0]), fit_shape(prev_grad, input_variables[1])
 
 
 class Mul(Operator):
@@ -71,10 +148,6 @@ class ReLU(Operator):
 class SoftMax(Operator):
     # For mini-batch, the output layout will be same with the input
     def compute(self, *var):
-        # max_value = np.max(var[0].item, axis=0)
-        # return variable.Variable(np.exp(var[0].item - max_value) / np.sum(np.exp(var[0].item - max_value), axis=0),
-        #                          input_vars=var, operator=self, no_grad=True)
-
         return Variable(np.exp(var[0].item) / np.sum(np.exp(var[0].item), axis=0),
                         input_vars=var, operator=self, no_grad=True)
 
@@ -135,13 +208,46 @@ class Dropout(Operator):
 class BatchNorm(Operator):
 
     def compute(self, *var):  # val, mean, var, eps
-        return Variable((var[0].item - var[1])/np.sqrt(var[2] + var[3]),
+        return Variable((var[0].item - var[1]) / np.sqrt(var[2] + var[3]),
                         input_vars=[var[0], Variable(np.sqrt(var[2] + var[3]), no_grad=True)],
                         operator=self,
                         no_grad=True)
 
     def gradient(self, input_variables, prev_grad):
         return [prev_grad / input_variables[1].item]
+
+
+class GELU(Operator):
+
+    def compute(self, *var):
+        x = var[0].item
+        return Variable(0.5 * x * (1 + np.tanh(np.sqrt(2 / np.pi) * (x + 0.044715 * np.power(x, 3)))),
+                        input_vars=var,
+                        operator=self,
+                        no_grad=True)
+
+    def gradient(self, input_variables, prev_grad):
+        x = input_variables[0].item
+        return (0.5 * np.tanh(0.0356774 * np.power(x, 3) + 0.797885 * x) +
+                (0.0535161 * np.power(x, 3) + 0.398942 * x) *
+                np.power((1 / np.cosh(0.0356774 * np.power(x, 3) + 0.797885 * x)), 2) + 0.5) * prev_grad
+
+
+def _p(var):
+    return .5 * (1. + erf(var / np.sqrt(2.)))
+
+
+class _GELU(Operator):
+
+    def compute(self, *var):
+        return Variable(var[0].item * _p(var[0].item),
+                        input_vars=var,
+                        operator=self,
+                        no_grad=True)
+
+    def gradient(self, input_variables, prev_grad):
+        x = input_variables[0].item
+        return (_p(x) + x / np.sqrt(np.pi) * np.exp(-np.power(x, 2) / 2)) * prev_grad
 
 
 def relu(var):
@@ -154,6 +260,10 @@ def softmax(var):
 
 def batchNorm(x, mean, var, eps):
     return BatchNorm()(x, mean, var, eps)
+
+
+def gelu(var, estimate=True):
+    return GELU()(var) if estimate else _GELU()(var)
 
 
 def do_nothing(var):
