@@ -30,20 +30,21 @@ class DataSet(object):
         self.y = []
         self._idx = 0
 
-        if shuffle:
+        if shuffle:  # Shuffle the data, keep alignment between x and y
             data_pair = list(zip(x, y))
             np.random.shuffle(data_pair)
             x = [i[0] for i in data_pair]
             y = [i[1] for i in data_pair]
 
-        if batch_size > 1:
-            def _make_batch(idx, bSize):
-                x_b = np.array(x[idx])
-                y_b = np.array(y[idx])
-                for i in range(1, bSize):
-                    x_b = np.vstack((x_b, np.array(x[idx + i])))
-                    y_b = np.vstack((y_b, np.array(y[idx + i])))
-                return x_b, y_b
+        def _make_batch(idx, bSize):  # make a single batch
+            x_b = np.array(x[idx])
+            y_b = np.array(y[idx])
+            for i in range(1, bSize):
+                x_b = np.vstack((x_b, np.array(x[idx + i])))
+                y_b = np.vstack((y_b, np.array(y[idx + i])))
+            return x_b, y_b
+
+        if batch_size > 1:  # if mini-batch enabled
 
             available_size = len(x) - len(x) % batch_size
             for i in range(0, available_size, batch_size):
@@ -56,8 +57,9 @@ class DataSet(object):
                 self.x.append(Variable(x_batch.T if T else x_batch, no_grad=True))
                 self.y.append(Variable(y_batch.T if T else y_batch, no_grad=True))
         else:
-            self.x = [Variable(np.array(i).T if T else np.array(i), no_grad=True) for i in x]
-            self.y = [Variable(np.array(i).T if T else np.array(i), no_grad=True) for i in y]
+            x_batch, y_batch = _make_batch(0, len(x))
+            self.x = [Variable(x_batch.T if T else x_batch, no_grad=True) for _ in x]
+            self.y = [Variable(y_batch.T if T else y_batch, no_grad=True) for _ in y]
 
     def __iter__(self):
         self._idx = 0

@@ -2,6 +2,18 @@ import numpy as np
 
 
 def xavier_normal_init(in_dim, out_dim):
+    """
+    Xavier normal initialization.
+
+    Parameters
+    ----------
+    in_dim
+    out_dim
+
+    Returns
+    -------
+
+    """
     return np.random.randn(out_dim, in_dim) * 2. / (out_dim+in_dim), np.zeros((out_dim, 1))
 
 

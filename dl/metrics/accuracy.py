@@ -3,7 +3,22 @@ from dl.graph.variable import Variable
 
 
 def accuracy(y: Variable, yhat: Variable) -> float:
-    yhat_max = np.max(yhat.item, axis=0)
+    """
+    Compute the classification accuracy.
+
+    Parameters
+    ----------
+    y:
+        Prediction.
+    yhat:
+        Ground Truth.
+
+    Returns
+    -------
+    out:
+        The rate of correct prediction.
+    """
+    yhat_max = np.max(yhat.item, axis=0)  # Process the predicted class.
     yres = np.where(yhat.item == yhat_max, 1, 0)
     right_cases = 0
     for i in range(y.shape[1]):

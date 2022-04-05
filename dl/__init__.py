@@ -13,4 +13,3 @@ from dl.graph.op import *
 
 import numpy
 numpy.seterr(all='ignore')
-dtype = numpy.float64

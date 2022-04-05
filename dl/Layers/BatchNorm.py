@@ -5,8 +5,22 @@ from dl.graph import Variable, batchNorm
 
 
 class BatchNormLayer(Module):
+    """
+    BatchNorm Layer object.
+    """
+    def __init__(self, dim: int, eps=1e-5, momentum=0.1):
+        """
+        BatchNorm Layer object.
 
-    def __init__(self, dim, eps=1e-5, momentum=0.1):
+        Parameters
+        ----------
+        dim:
+            input dimension.
+        eps:
+            epsilon to avoid divide by zero
+        momentum:
+            momentum used to compute moving average of mean and stddev.
+        """
         super().__init__()
         self.dim = dim
         self.gamma = Variable(np.ones((dim, 1)))
@@ -18,7 +32,22 @@ class BatchNormLayer(Module):
         self.running_stdv = None
         self._eval = False
 
-    def forward(self, x) -> Variable:
+    def forward(self, x: Variable) -> Variable:
+        """
+        Process BatchNorm operations.
+
+        Compute the moving average of mean and stddev, apply normalization and shifting.
+
+        Parameters
+        ----------
+        x:
+            Input
+
+        Returns
+        -------
+        out:
+            BN Result.
+        """
         if not self._eval:
             mean = np.mean(x.item, axis=1).reshape(self.dim, 1)
             var = np.var(x.item, axis=1).reshape(self.dim, 1)
@@ -35,9 +64,27 @@ class BatchNormLayer(Module):
         return normalized * self.gamma + self.beta
 
     def eval(self):
+        """
+        Set the layer to evaluation mode. In this mode the moving average of mean and stddev will not be
+        updated.
+
+        Returns
+        -------
+        out:
+            None
+        """
         self._eval = True
 
     def train(self):
+        """
+        Set the layer to training mode. In this mode the moving average of mean and stddev will be
+        updated.
+
+        Returns
+        -------
+        out:
+            None
+        """
         self._eval = False
 
 

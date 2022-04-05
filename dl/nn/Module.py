@@ -24,6 +24,18 @@ class Module:
                 parameters += i.variables
         return parameters
 
+    def save_parameters(self):
+        param = self.get_parameters()
+        saved_parameter = []
+        for i in param:
+            saved_parameter.append(i.item.copy())
+        return saved_parameter
+
+    def load_parameters(self, params: list):
+        param = self.get_parameters()
+        for i in range(len(param)):
+            param[i].item = params[i].copy()
+
     def train(self):
         if self.children is None:
             self._get_sub_modules()
