@@ -130,11 +130,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-report.tex
-report.pdf
 test.py
 data
 test
 .DS_Store
 Assignment1-Dataset.zip
 venv2
+out

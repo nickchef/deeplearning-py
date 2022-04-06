@@ -51,7 +51,7 @@ class Variable(object):
     def __str__(self):
         return f"Variable({str(self.item)}, dtype={type(self.item)}, shape={self.shape})"
 
-    def backward(self, prev_grad=None):
+    def backward(self, prev_grad=None) -> None:
         """
         Backward Proporgation process.
 
