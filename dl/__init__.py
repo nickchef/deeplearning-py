@@ -1,5 +1,7 @@
 __all__ = []
 
+__author__ = "zlyu0226"
+
 import dl.nn
 import dl.Layers
 import dl.dataset

@@ -93,6 +93,7 @@ class EarlyStoppingPipe:
         self.params = params
         self.data = []
         self.value_on_watch = value_on_watch
+        self.best_round = 0
 
     def run(self):
         """
@@ -116,11 +117,12 @@ class EarlyStoppingPipe:
             if (self.mode == "max" and val > self.best_Score) or (self.mode == "min" and val < self.best_Score):
                 self.best_Score = val
                 self.best_state = self.model.save_parameters()
+                self.best_round = i
                 self.round = 0
             else:
                 self.round += 1
             if self.round > self.tolerance_round:
-                print(f"EarlyStopped with best score {self.best_Score} at epoch {i+1}")
+                print(f"EarlyStopped with best score {self.best_Score} at epoch {self.best_round + 1}")
                 break
         return self.get_best_model()
 
